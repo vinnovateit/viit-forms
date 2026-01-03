@@ -1,3 +1,5 @@
+import React from "react";
+
 const InputField: React.FC<{
   id: string;
   label: string;
@@ -8,14 +10,29 @@ const InputField: React.FC<{
   placeholder?: string;
   error?: string;
   options?: string[];
-}> = ({ id, label, type = 'text', value, onChange, required = false, placeholder, error, options }) => {
-  const baseClasses = "shadow appearance-none border bg-black bg-opacity-60 backdrop-blur-sm rounded-lg w-full py-3 px-4 text-white leading-tight focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300";
-  const errorClasses = error ? "border-red-500" : "border-purple-500/30";
+}> = ({
+  id,
+  label,
+  type = "text",
+  value,
+  onChange,
+  required = false,
+  placeholder,
+  error,
+  options,
+}) => {
+  const baseClasses = "input-field";
+  const textareaClasses = "input-textarea";
 
-  if (type === 'select' && options) {
+  const errorClasses = error ? "border-red-500" : "border-white/10";
+
+  if (type === "select" && options) {
     return (
       <div className="mb-4 transform transition-all duration-300 hover:translate-x-1 group">
-        <label className="block text-purple-300 text-sm font-bold mb-2" htmlFor={id}>
+        <label
+          className="block text-purple-300 text-sm font-bold mb-2"
+          htmlFor={id}
+        >
           {label} {required && <span className="text-red-400">*</span>}
         </label>
         <div className="relative">
@@ -28,20 +45,41 @@ const InputField: React.FC<{
           >
             <option value="">{placeholder || `Select ${label}`}</option>
             {options.map((option) => (
-              <option key={option} value={option}>{option}</option>
+              <option key={option} value={option}>
+                {option}
+              </option>
             ))}
           </select>
-          <div className="absolute inset-0 border border-purple-500/0 rounded-lg group-hover:border-purple-500/30 transition-all duration-300 pointer-events-none"></div>
+          {/* Custom Chevron */}
+          <div className="absolute right-6 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg
+              className="w-5 h-5 text-neutral-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+          <div className="absolute inset-0 border border-purple-500/0 rounded-full group-hover:border-purple-500/30 transition-all duration-300 pointer-events-none"></div>
         </div>
         {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
       </div>
     );
   }
 
-  if (type === 'textarea') {
+  if (type === "textarea") {
     return (
       <div className="mb-4 transform transition-all duration-300 hover:translate-x-1 group">
-        <label className="block text-purple-300 text-sm font-bold mb-2" htmlFor={id}>
+        <label
+          className="block text-purple-300 text-sm font-bold mb-2"
+          htmlFor={id}
+        >
           {label} {required && <span className="text-red-400">*</span>}
         </label>
         <div className="relative">
@@ -52,9 +90,9 @@ const InputField: React.FC<{
             required={required}
             placeholder={placeholder}
             rows={4}
-            className={`${baseClasses} ${errorClasses} resize-none`}
+            className={`${textareaClasses} ${errorClasses}`}
           />
-          <div className="absolute inset-0 border border-purple-500/0 rounded-lg group-hover:border-purple-500/30 transition-all duration-300 pointer-events-none"></div>
+          <div className="absolute inset-0 border border-purple-500/0 rounded-4xl group-hover:border-purple-500/30 transition-all duration-300 pointer-events-none"></div>
         </div>
         {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
       </div>
@@ -63,7 +101,10 @@ const InputField: React.FC<{
 
   return (
     <div className="mb-4 transform transition-all duration-300 hover:translate-x-1 group">
-      <label className="block text-purple-300 text-sm font-bold mb-2" htmlFor={id}>
+      <label
+        className="block text-purple-300 text-sm font-bold mb-2"
+        htmlFor={id}
+      >
         {label} {required && <span className="text-red-400">*</span>}
       </label>
       <div className="relative">
@@ -76,7 +117,7 @@ const InputField: React.FC<{
           placeholder={placeholder}
           className={`${baseClasses} ${errorClasses}`}
         />
-        <div className="absolute inset-0 border border-purple-500/0 rounded-lg group-hover:border-purple-500/30 transition-all duration-300 pointer-events-none"></div>
+        <div className="absolute inset-0 border border-purple-500/0 rounded-full group-hover:border-purple-500/30 transition-all duration-300 pointer-events-none"></div>
       </div>
       {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
     </div>

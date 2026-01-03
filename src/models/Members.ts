@@ -8,6 +8,7 @@ interface IPersonalInfo {
   phoneNumber: string;
   branchSpecialization: string;
   gender: 'Male' | 'Female' | 'Other';
+  dob: Date; // Added DOB
   vitEmail: string;
   personalEmail: string;
   domain: string;
@@ -135,6 +136,10 @@ const PersonalInfoSchema = new Schema<IPersonalInfo>({
       values: ['Male', 'Female', 'Other'],
       message: 'Please select a valid gender'
     }
+  },
+  dob: {
+    type: Date,
+    required: [true, 'Please provide your date of birth']
   },
   vitEmail: {
     type: String,

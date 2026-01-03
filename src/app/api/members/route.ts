@@ -6,6 +6,7 @@ import FormSubmission from "@/models/Members";
 interface PersonalInfo {
   regNumber: string;
   domain?: string;
+  dob?: string | Date; // Added DOB here
 }
 
 interface FormSubmissionBody {
