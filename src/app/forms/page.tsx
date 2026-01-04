@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { ArrowRight, Save, Check, AlertCircle } from "lucide-react";
+import { ArrowRight, Save } from "lucide-react";
 import { useFormContext } from "../context/FormContext";
 import InputField from "../components/InputField";
 import Toast from "../components/Toast";
@@ -15,14 +15,9 @@ const VIT_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@vitstudent\.ac\.in$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[0-9]{10}$/;
 
-type SubmitStatus = "idle" | "submitting" | "success" | "error";
-
 export default function FormsPage() {
   const { setActiveSection } = useFormContext();
-
-  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
-  const [statusMessage, setStatusMessage] = useState("");
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -43,7 +38,7 @@ export default function FormsPage() {
     dob: "",
     vitEmail: "",
     personalEmail: "",
-    cgpa: "", // <--- Changed from otherOrganizations
+    otherOrganizations: "None",
     domain: "",
     subDomain: "",
     projects: "",
@@ -139,22 +134,8 @@ export default function FormsPage() {
 
     if (!formData.branchSpecialization.trim())
       newErrors.branchSpecialization = "Branch is required";
-
-    // CGPA Validation
-    if (!formData.cgpa.toString().trim()) {
-      newErrors.cgpa = "CGPA is required";
-    } else {
-      const cgpaRegex = /^([0-9]\.[0-9]{2}|10\.00)$/;
-
-      if (!cgpaRegex.test(formData.cgpa.toString())) {
-        newErrors.cgpa = "Format must be X.XX (e.g., 9.50)";
-      } else {
-        const val = parseFloat(formData.cgpa);
-        if (val < 0 || val > 10) {
-          newErrors.cgpa = "CGPA cannot exceed 10";
-        }
-      }
-    }
+    if (!formData.otherOrganizations.trim())
+      newErrors.otherOrganizations = "Required (type 'None' if applicable)";
 
     if (!formData.domain) newErrors.domain = "Domain is required";
     if (
@@ -177,10 +158,9 @@ export default function FormsPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (field: string, value: any) => {
+  // Fixed: Replaced 'any' with 'string | number'
+  const handleChange = (field: string, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (submitStatus === "error") setSubmitStatus("idle");
-
     if (errors[field]) {
       setErrors((prev) => {
         const newErr = { ...prev };
@@ -202,22 +182,18 @@ export default function FormsPage() {
     }
   };
 
-  const triggerErrorState = (msg: string) => {
-    setSubmitStatus("error");
-    setStatusMessage(msg);
-    setTimeout(() => setSubmitStatus("idle"), 5000);
-  };
-
   const handleSubmit = async () => {
     if (!validateForm()) {
-      const msg = "Please fix the errors in the form.";
-      setToast({ show: true, message: msg, type: "error" });
+      setToast({
+        show: true,
+        message: "Please fix the errors in the form.",
+        type: "error",
+      });
       setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 3000);
-      triggerErrorState(msg);
       return;
     }
 
-    setSubmitStatus("submitting");
+    setIsSubmitting(true);
 
     const apiPayload = {
       personalInfo: {
@@ -229,7 +205,7 @@ export default function FormsPage() {
         dob: formData.dob,
         vitEmail: formData.vitEmail.toLowerCase(),
         personalEmail: formData.personalEmail.toLowerCase(),
-        cgpa: parseFloat(formData.cgpa), // <--- Send as number
+        otherOrganizations: formData.otherOrganizations,
       },
       domainInfo: {
         domain: formData.domain,
@@ -250,9 +226,7 @@ export default function FormsPage() {
         body: JSON.stringify(apiPayload),
       });
       const result = await response.json();
-
       if (result.success) {
-        setSubmitStatus("success");
         setToast({
           show: true,
           message: "Profile updated successfully!",
@@ -260,36 +234,18 @@ export default function FormsPage() {
         });
         localStorage.removeItem(AUTOSAVE_KEY);
         setLastSaved(null);
-
-        setTimeout(() => {
-          setSubmitStatus("idle");
-          setToast((prev) => ({ ...prev, show: false }));
-        }, 5000);
       } else {
-        const msg = result.error || "Submission failed";
-        setToast({ show: true, message: msg, type: "error" });
-        triggerErrorState(msg);
+        setToast({
+          show: true,
+          message: result.error || "Submission failed",
+          type: "error",
+        });
       }
     } catch {
-      const msg = "Network error";
-      setToast({ show: true, message: msg, type: "error" });
-      triggerErrorState(msg);
-    }
-  };
-
-  const getButtonClass = () => {
-    const base =
-      "w-full transition-all duration-300 font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg";
-
-    switch (submitStatus) {
-      case "success":
-        return `${base} bg-green-600 text-white cursor-default transform scale-105`;
-      case "error":
-        return `${base} bg-red-600 text-white hover:bg-red-700`;
-      case "submitting":
-        return `${base} bg-neutral-800 text-white cursor-wait opacity-80`;
-      default:
-        return "btn-primary group w-full";
+      setToast({ show: true, message: "Network error", type: "error" });
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 3000);
     }
   };
 
@@ -297,20 +253,19 @@ export default function FormsPage() {
     <div className="w-full">
       <Toast show={toast.show} message={toast.message} type={toast.type} />
 
-      <div className="max-w-5xl mx-auto p-6 md:p-16 space-y-24 md:space-y-32">
-        {/* PERSONAL SECTION */}
+      {/* Form Container */}
+      <div className="max-w-5xl mx-auto p-6 md:p-16 space-y-32">
+        {/* PERSONAL */}
         <section
           id="personal"
           ref={(el) => {
             observerRefs.current["personal"] = el;
           }}
-          className={`scroll-mt-32 md:scroll-mt-10 ${styles.staggerContainer}`}
+          className={`scroll-mt-10 ${styles.staggerContainer}`}
         >
-          <div className="md:hidden mb-8 pb-2 border-b border-white/10">
-            <h2 className="text-3xl font-bold text-white">Personal Details</h2>
-            <p className="text-neutral-400 text-sm mt-1">Basic contact info.</p>
+          <div className="mb-10 pb-4 border-b border-white/10 md:hidden mt-10">
+            <h2 className="text-3xl font-bold">Personal Info</h2>
           </div>
-
           <div className="space-y-8">
             <div
               className={`grid md:grid-cols-2 gap-8 ${styles.animateSlideUp}`}
@@ -403,38 +358,31 @@ export default function FormsPage() {
                 error={errors.branchSpecialization}
               />
             </div>
-
-            {/* REPLACED FIELD: CGPA */}
             <div className={styles.animateSlideUp}>
               <InputField
-                id="cgpa"
-                label="CGPA"
-                type="number"
-                value={formData.cgpa}
-                onChange={(v) => handleChange("cgpa", v)}
+                id="otherOrganizations"
+                label="Other Clubs/Chapters"
+                value={formData.otherOrganizations}
+                onChange={(v) => handleChange("otherOrganizations", v)}
                 required
-                placeholder="e.g. 9.2"
-                error={errors.cgpa}
+                placeholder="Mention them or write 'None'"
+                error={errors.otherOrganizations}
               />
             </div>
           </div>
         </section>
 
-        {/* DOMAIN SECTION */}
+        {/* DOMAIN */}
         <section
           id="domain"
           ref={(el) => {
             observerRefs.current["domain"] = el;
           }}
-          className={`scroll-mt-32 md:scroll-mt-10 ${styles.staggerContainer}`}
+          className={`scroll-mt-10 ${styles.staggerContainer}`}
         >
-          <div className="md:hidden mb-8 pb-2 border-b border-white/10">
-            <h2 className="text-3xl font-bold text-white">Domain & Work</h2>
-            <p className="text-neutral-400 text-sm mt-1">
-              Showcase your skills.
-            </p>
+          <div className="mb-10 pb-4 border-b border-white/10 md:hidden">
+            <h2 className="text-3xl font-bold">Domain</h2>
           </div>
-
           <div className="space-y-8">
             <div
               className={`grid md:grid-cols-2 gap-8 ${styles.animateSlideUp}`}
@@ -449,6 +397,7 @@ export default function FormsPage() {
                 options={["Tech", "Design", "Management"]}
                 error={errors.domain}
               />
+
               {formData.domain &&
                 domainOptionsMap[
                   formData.domain as keyof typeof domainOptionsMap
@@ -484,19 +433,17 @@ export default function FormsPage() {
           </div>
         </section>
 
-        {/* COMMITMENT SECTION */}
+        {/* COMMITMENT */}
         <section
           id="commitment"
           ref={(el) => {
             observerRefs.current["commitment"] = el;
           }}
-          className={`scroll-mt-32 md:scroll-mt-10 pb-32 ${styles.staggerContainer}`}
+          className={`scroll-mt-10 pb-32 ${styles.staggerContainer}`}
         >
-          <div className="md:hidden mb-8 pb-2 border-b border-white/10">
-            <h2 className="text-3xl font-bold text-white">Commitment</h2>
-            <p className="text-neutral-400 text-sm mt-1">Dedication check.</p>
+          <div className="mb-10 pb-4 border-b border-white/10 md:hidden">
+            <h2 className="text-3xl font-bold">Commitment</h2>
           </div>
-
           <div className="space-y-10">
             <div className={styles.animateSlideUp}>
               <InputField
@@ -537,43 +484,25 @@ export default function FormsPage() {
             </div>
           </div>
 
-          {/* DYNAMIC SUBMIT BUTTON */}
+          {/* SUBMIT BUTTON */}
           <div
             className={`mt-16 pt-8 border-t border-white/10 ${styles.animateSlideUp}`}
           >
             <button
               onClick={handleSubmit}
-              disabled={
-                submitStatus === "submitting" || submitStatus === "success"
-              }
-              className={getButtonClass()}
+              disabled={isSubmitting}
+              className="btn-primary group w-full"
             >
-              {submitStatus === "submitting" && (
+              {isSubmitting ? (
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-              )}
-
-              {submitStatus === "idle" && (
+              ) : (
                 <>
-                  Submit Profile
+                  Submit Profile{" "}
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                 </>
               )}
-
-              {submitStatus === "success" && (
-                <>
-                  <Check className="w-6 h-6" />
-                  SUBMITTED
-                </>
-              )}
-
-              {submitStatus === "error" && (
-                <>
-                  <AlertCircle className="w-5 h-5" />
-                  {statusMessage}
-                </>
-              )}
             </button>
-
+            {/* Auto-save Indicator */}
             {lastSaved && (
               <div className="fixed -bottom-20 self-center z-50 bg-black/80 backdrop-blur-md text-white/70 px-4 py-2 rounded-full text-xs font-medium flex items-center gap-2 border border-white/10 animate-fadeIn">
                 <Save className="w-3 h-3" />

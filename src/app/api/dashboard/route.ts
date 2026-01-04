@@ -5,7 +5,6 @@ import FormSubmission from "@/models/Members";
 export async function GET(request: NextRequest) {
   // Authentication check
   const authHeader = request.headers.get('authorization');
-  // FIXED: Changed variable name to prevent client-side exposure
   const adminSecret = process.env.ADMIN_SECRET; 
   
   if (!authHeader || authHeader !== `Bearer ${adminSecret}`) {
@@ -26,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    const query: any = {};
+    const query: Record<string, unknown> = {};
     if (domain) query['personalInfo.domain'] = domain;
     if (status) query.status = status;
 
@@ -50,10 +49,11 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
-    console.error('Dashboard API error:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    console.error('Dashboard API error:', errorMessage);
     return NextResponse.json(
-      { success: false, error: error.message, data: [] },
+      { success: false, error: errorMessage, data: [] },
       { status: 500 }
     );
   }

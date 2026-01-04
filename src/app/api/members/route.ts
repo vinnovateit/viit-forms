@@ -2,19 +2,23 @@ import { NextRequest } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import FormSubmission from "@/models/Members";
 
-// Types matching the new Schema
 interface FormSubmissionBody {
   personalInfo: {
     regNumber: string;
     vitEmail: string;
     personalEmail: string;
-    [key: string]: any;
+    // Allow other fields but type them loosely as unknown or specific primitives
+    [key: string]: string | number | boolean | undefined;
   };
   domainInfo: {
     domain: string;
-    [key: string]: any;
+    [key: string]: string | undefined;
   };
-  commitmentInfo: any;
+  commitmentInfo: {
+    likedSenior: string;
+    commitment: number;
+    commitmentJustification: string;
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -45,7 +49,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check duplicates
+    // Check duplicates (Emails)
     const existingEmail = await FormSubmission.findOne({
         $or: [
             { 'personalInfo.vitEmail': body.personalInfo.vitEmail },
@@ -71,10 +75,11 @@ export async function POST(req: NextRequest) {
       { status: 201, headers: { "Content-Type": "application/json" } }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Submission failed";
     console.error('Submission error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message || "Submission failed" }), 
+      JSON.stringify({ success: false, error: errorMessage }), 
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -88,8 +93,8 @@ export async function GET(req: NextRequest) {
     const domain = searchParams.get('domain');
     const limit = parseInt(searchParams.get('limit') || '50');
     const page = parseInt(searchParams.get('page') || '1');
-    
-    const filter: any = {};
+
+    const filter: Record<string, unknown> = {};
     if (status) filter.status = status;
     if (domain) filter['domainInfo.domain'] = domain;
     
@@ -115,9 +120,10 @@ export async function GET(req: NextRequest) {
       }), 
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "An error occurred";
     return new Response(
-      JSON.stringify({ success: false, error: error.message }), 
+      JSON.stringify({ success: false, error: errorMessage }), 
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
