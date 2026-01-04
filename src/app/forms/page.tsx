@@ -415,7 +415,7 @@ export default function FormsPage() {
                 value={formData.cgpa}
                 onChange={(v) => handleChange("cgpa", v)}
                 required
-                placeholder="e.g. 9.2"
+                placeholder="9.31"
                 error={errors.cgpa}
               />
             </div>
