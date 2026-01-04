@@ -140,6 +140,24 @@ export default function FormsPage() {
     if (!formData.branchSpecialization.trim())
       newErrors.branchSpecialization = "Branch is required";
 
+    if (!formData.dob) {
+      newErrors.dob = "Date of Birth is required";
+    } else {
+      const birthDate = new Date(formData.dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+
+      // Adjust age if birthday hasn't happened yet this year
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age < 13) {
+        newErrors.dob = "You are too young for the club.";
+      }
+    }
+
     // CGPA Validation
     if (!formData.cgpa.toString().trim()) {
       newErrors.cgpa = "CGPA is required";
