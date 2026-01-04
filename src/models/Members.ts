@@ -5,11 +5,11 @@ interface IPersonalInfo {
   regNumber: string;
   phoneNumber: string;
   branchSpecialization: string;
-  gender: 'Male' | 'Female' | 'Other';
+  gender: 'Male' | 'Female';
   dob: Date;
   vitEmail: string;
   personalEmail: string;
-  cgpa: number; // <--- Changed from otherOrganizations
+  cgpa: number;
 }
 
 interface IDomainInfo {
@@ -19,7 +19,6 @@ interface IDomainInfo {
 }
 
 interface ICommitmentInfo {
-  likedSenior: string;
   commitment: number;
   commitmentJustification: string;
 }
@@ -50,7 +49,7 @@ const PersonalInfoSchema = new Schema<IPersonalInfo>({
   },
   phoneNumber: { type: String, required: true, match: [/^[0-9]{10}$/, 'Invalid Phone Number'] },
   branchSpecialization: { type: String, required: true, trim: true },
-  gender: { type: String, required: true, enum: ['Male', 'Female', 'Other'] },
+  gender: { type: String, required: true, enum: ['Male', 'Female'] },
   dob: { type: Date, required: true },
   vitEmail: { 
     type: String, 
@@ -66,7 +65,7 @@ const PersonalInfoSchema = new Schema<IPersonalInfo>({
     trim: true, 
     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid Personal Email']
   },
-  cgpa: { type: Number, required: true, min: 0, max: 10 } // <--- Changed
+  cgpa: { type: Number, required: true, min: 0, max: 10 }
 }, { _id: false });
 
 const DomainInfoSchema = new Schema<IDomainInfo>({
@@ -76,7 +75,6 @@ const DomainInfoSchema = new Schema<IDomainInfo>({
 }, { _id: false });
 
 const CommitmentInfoSchema = new Schema<ICommitmentInfo>({
-  likedSenior: { type: String, required: true, trim: true },
   commitment: { type: Number, required: true, min: 1, max: 5 },
   commitmentJustification: { type: String, required: true, trim: true }
 }, { _id: false });
@@ -98,6 +96,7 @@ const FormSubmissionSchema = new Schema<IFormSubmission>({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Indexes
 FormSubmissionSchema.index({ 'personalInfo.regNumber': 1 }, { unique: true });
 FormSubmissionSchema.index({ 'personalInfo.vitEmail': 1 });
 FormSubmissionSchema.index({ 'domainInfo.domain': 1 });
