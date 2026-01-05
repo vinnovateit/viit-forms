@@ -109,8 +109,10 @@ export default function FormsPage() {
 
   // --- Validation Logic ---
 
-  const validateField = (field: string, value: any): string | null => {
-    // 1. Check Required (Skip subDomain if not applicable)
+  const validateField = (
+    field: string,
+    value: string | number
+  ): string | null => {
     if (!value || (typeof value === "string" && !value.trim())) {
       if (field === "subDomain") {
         const domainOpts =
@@ -122,24 +124,25 @@ export default function FormsPage() {
       return "This field is required";
     }
 
-    // 2. Specific Checks
+    const stringValue = value.toString();
+
     switch (field) {
       case "regNumber":
-        if (!REG_NUMBER_REGEX.test(value))
+        if (!REG_NUMBER_REGEX.test(stringValue))
           return "Must start with '24' or '25' (e.g., 25BCE...)";
         break;
       case "phoneNumber":
-        if (!PHONE_REGEX.test(value)) return "Must be exactly 10 digits";
+        if (!PHONE_REGEX.test(stringValue)) return "Must be exactly 10 digits";
         break;
       case "vitEmail":
-        if (!VIT_EMAIL_REGEX.test(value))
+        if (!VIT_EMAIL_REGEX.test(stringValue))
           return "Must end with @vitstudent.ac.in";
         break;
       case "personalEmail":
-        if (!EMAIL_REGEX.test(value)) return "Invalid email format";
+        if (!EMAIL_REGEX.test(stringValue)) return "Invalid email format";
         break;
       case "dob":
-        const birthDate = new Date(value);
+        const birthDate = new Date(stringValue);
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
         const m = today.getMonth() - birthDate.getMonth();
@@ -148,17 +151,17 @@ export default function FormsPage() {
         break;
       case "cgpa":
         const cgpaRegex = /^([0-9]\.[0-9]{2}|10\.00)$/;
-        if (!cgpaRegex.test(value.toString()))
+        if (!cgpaRegex.test(stringValue))
           return "Format must be X.XX (e.g., 9.50)";
-        const val = parseFloat(value);
+        const val = parseFloat(stringValue);
         if (val < 0 || val > 10) return "CGPA cannot exceed 10";
         break;
       case "hostelBlock":
-        if (!BLOCK_REGEX.test(value))
+        if (!BLOCK_REGEX.test(stringValue))
           return "Enter a single letter (e.g., 'A')";
         break;
       case "hostelRoom":
-        if (!ROOM_REGEX.test(value)) return "Max 4 digits allowed";
+        if (!ROOM_REGEX.test(stringValue)) return "Max 4 digits allowed";
         break;
     }
     return null;
