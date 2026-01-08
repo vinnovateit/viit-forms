@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
-import { User, Layers, Heart, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { User, Layers, Heart } from "lucide-react";
 import { useFormContext } from "../context/FormContext";
 import styles from "./SidePanel.module.css";
 
@@ -42,7 +41,7 @@ export default function SidePanel({ variant }: SidePanelProps) {
 
   const homeContent = {
     title: "VinnovateIT 2026",
-    desc: "Welcome to the most innovative technical club at VIT. There is just one thing left to do!",
+    desc: "We're no longer accepting responses!",
     icon: (
       // eslint-disable-next-line @next/next/no-img-element
       <img
@@ -57,6 +56,7 @@ export default function SidePanel({ variant }: SidePanelProps) {
     ? homeContent
     : sectionContent[activeSection] || sectionContent.personal;
 
+  if (!isHome) return null;
   return (
     <div
       className={`flex flex-col justify-center h-full relative overflow-hidden ${
@@ -133,17 +133,6 @@ export default function SidePanel({ variant }: SidePanelProps) {
         >
           {currentData.desc}
         </p>
-
-        {isHome && (
-          <div className="mt-12 text-center">
-            <Link href="/forms">
-              <button className="btn-primary group">
-                <span>GO</span>
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </button>
-            </Link>
-          </div>
-        )}
       </div>
 
       {!isHome && (
