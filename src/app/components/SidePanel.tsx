@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
-import { User, Layers, Heart, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { User, Layers, Heart } from "lucide-react";
 import { useFormContext } from "../context/FormContext";
 import styles from "./SidePanel.module.css";
 
