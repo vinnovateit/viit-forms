@@ -3,11 +3,29 @@ import React, { useState } from "react";
 import InputField from "../components/InputField";
 import Toast from "../components/Toast";
 
+interface PersonalInfo {
+  hostelBlock: string;
+  hostelRoom: string;
+}
+
+interface FormData {
+  personalInfo: PersonalInfo;
+  regNumber?: string;
+}
+
+type ToastType = "info" | "error" | "success";
+
+interface Toast {
+  show: boolean;
+  message: string;
+  type: ToastType;
+}
+
 export default function UpdateRoomPage() {
   const [regNumber, setRegNumber] = useState("");
-  const [formData, setFormData] = useState<any>(null);
+  const [formData, setFormData] = useState<FormData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "", type: "info" as any });
+  const [toast, setToast] = useState<Toast>({ show: false, message: "", type: "info" });
 
   const handleFetch = async () => {
     setIsLoading(true);
@@ -85,15 +103,13 @@ export default function UpdateRoomPage() {
         <div className="space-y-6">
           <div className="bg-neutral-900/50 p-6 rounded-2xl border border-white/5 space-y-4">
             <InputField 
-              label="Hostel Block" 
-              value={formData.personalInfo?.hostelBlock || ""} 
-              onChange={(v) => setFormData({...formData, personalInfo: {...formData.personalInfo, hostelBlock: v}})} 
-            />
+              label="Hostel Block"
+              value={formData.personalInfo?.hostelBlock || ""}
+              onChange={(v) => setFormData({ ...formData, personalInfo: { ...formData.personalInfo, hostelBlock: v } })} id={""}            />
             <InputField 
-              label="Hostel Room" 
-              value={formData.personalInfo?.hostelRoom || ""} 
-              onChange={(v) => setFormData({...formData, personalInfo: {...formData.personalInfo, hostelRoom: v}})} 
-            />
+              label="Hostel Room"
+              value={formData.personalInfo?.hostelRoom || ""}
+              onChange={(v) => setFormData({ ...formData, personalInfo: { ...formData.personalInfo, hostelRoom: v } })} id={""}            />
           </div>
           
           <div className="flex gap-4">
