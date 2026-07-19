@@ -9,7 +9,7 @@ interface PersonalInfo {
   hostelBlock: string;
   hostelRoom: string;
   cgpa: number | string;
-  [key: string]: any; 
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 interface FormData {
@@ -168,8 +168,6 @@ export default function UpdateRoomPage() {
                 id="cgpa"
                 label="CGPA"
                 type="number"
-                step="0.01"
-                max="10"
                 value={formData.personalInfo?.cgpa?.toString() || ""}
                 onChange={(v) => setFormData({ 
                   ...formData, 
